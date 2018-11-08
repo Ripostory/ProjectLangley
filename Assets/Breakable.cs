@@ -10,6 +10,8 @@ public class Breakable : MonoBehaviour {
     public UnityEvent onSlap;
     public UnityEvent onBreak;
 
+    public GameObject onDeath = null;
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         //check if exceeds damage threshold
@@ -66,8 +68,11 @@ public class Breakable : MonoBehaviour {
                 gibber.isExplosion = false;
             }
             gibber.SpawnGibs();
-        } 
-
+        }
+        if (onDeath != null)
+        {
+            Instantiate(onDeath, transform.position, transform.rotation);
+        }
         Destroy(gameObject);
     }
 }
