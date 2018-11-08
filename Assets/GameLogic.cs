@@ -12,9 +12,11 @@ public class GameLogic : MonoBehaviour {
     public Text uiBallCount;
     public Image winPanel;
     public Image losePanel;
+    public Camera mainCam;
 
     private bool isWinState = false;
     private bool isLoseState = false;
+    private Coroutine currentCoroutine = null;
 
 
     //references for active slingshot
@@ -50,16 +52,18 @@ public class GameLogic : MonoBehaviour {
     public void BallUsed()
     {
         ballCount--;
-        
+        mainCam.GetComponent<CameraControl>().FocusStructure();
         if (ballCount <= 0)
         {
-            //all balls expended, wait till either loss or all enemies killed
-            LoseTrigger();
+            //begin lose trigger routine
+            StartCoroutine(DelayLose());
             ballCount = 0;
         } else
         {
+            //focus on structure
+            mainCam.GetComponent<CameraControl>().FocusStructure();
             //wait 3 seconds and relaunch ball
-            StartCoroutine(SpawnNewBall());
+            currentCoroutine = StartCoroutine(SpawnNewBall());
         }
         //update ball counter
         uiBallCount.text = ballCount.ToString();
@@ -67,8 +71,38 @@ public class GameLogic : MonoBehaviour {
 
     IEnumerator SpawnNewBall()
     {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(8);
+        //focus on slingshot
+        mainCam.GetComponent<CameraControl>().FocusSlingShot();
+
         slingShot.SendMessage("SpawnBall");
+    }
+
+    public void PrematureSpawnBall()
+    {
+        //halt the spawning coroutine
+        if (currentCoroutine != null)
+        {
+            StopCoroutine(currentCoroutine);
+        }
+
+        if (ballCount > 0)
+        {
+            print(ballCount);
+            mainCam.GetComponent<CameraControl>().FocusSlingShot();
+            slingShot.SendMessage("SpawnBall");
+        } else
+        {
+            //instant fail
+            LoseTrigger();
+        }
+    }
+
+    IEnumerator DelayLose()
+    {
+        //all balls expended, wait till either loss or all enemies killed
+        yield return new WaitForSeconds(8);
+        LoseTrigger();
     }
 
     void WinTrigger()
