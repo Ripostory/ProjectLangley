@@ -6,6 +6,9 @@ public class PullAndRelease : MonoBehaviour {
     private Vector3 startPos;
     public float force = 1000f;
 
+    //set when instantiated
+    public SlingShot sling;
+
 	// Use this for initialization
 	void Start () {
         startPos = gameObject.transform.position;
@@ -51,6 +54,9 @@ public class PullAndRelease : MonoBehaviour {
         //yeet
         Vector3 dir = startPos - transform.position;
         GetComponent<Rigidbody2D>().AddForce(dir * force);
+
+        //notify parent of launching
+        sling.SendMessage("BallLaunched");
 
         // Remove the Script (not the gameObject)
         Destroy(this);

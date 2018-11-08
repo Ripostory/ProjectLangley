@@ -15,33 +15,59 @@ public class Breakable : MonoBehaviour {
         //check if exceeds damage threshold
         string enemyTag = collision.gameObject.tag;
         string myTag = gameObject.tag;
-        if ((myTag == "Structure" && enemyTag == "Ball") || (myTag != "Structure"))
+        if (enemyTag == "Ball" || enemyTag == "Structure")
         {
             for (int i = 0; i < collision.contactCount; i++)
             {
                 float impulse = collision.GetContact(i).normalImpulse;
                 if (impulse > velocityThreshold)
                 {
-                    Slap();
+                    if (enemyTag == "Ball")
+                    {
+                        Slap(true);
+                    } else
+                    {
+                        Slap(false);
+                    }
                 }
             }
         }
     }
 
-    public void Slap()
+    public void Slap(bool isBall)
     {
         //on significant damage
         hitPoints--;
-        if (hitPoints < 0)
+        if (hitPoints <= 0)
         {
             //Alert listeners that object broke
             onBreak.Invoke();
             //object broke, destroy.
-            Destroy(gameObject);
+            Broken(isBall);
         } else
         {
             //alert listeners that object was hit
             onSlap.Invoke();
         }
+    }
+
+    public void Broken(bool isBall)
+    {
+        //call gibbing routine if available
+        GibObject gibber = GetComponent<GibObject>();
+        if (gibber != null)
+        {
+            if (isBall)
+            {
+                //assume hit with force
+                gibber.isExplosion = true;
+            } else
+            {
+                gibber.isExplosion = false;
+            }
+            gibber.SpawnGibs();
+        } 
+
+        Destroy(gameObject);
     }
 }
